@@ -5,6 +5,7 @@ interface QuestionData {
   question: string
   category: string
   difficulty: "easy" | "medium" | "hard"
+  sampleTests?: { input: string; expected: string }[]
 }
 
 export async function generateInterviewQuestions(type: InterviewType, count = 5): Promise<InterviewQuestion[]> {
@@ -27,6 +28,7 @@ export async function generateInterviewQuestions(type: InterviewType, count = 5)
       question: q.question,
       category: q.category,
       difficulty: q.difficulty,
+      sampleTests: q.sampleTests,
     }))
 
     return questions
@@ -87,6 +89,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Given an array of integers, find two numbers that add up to a specific target. Return the indices of the two numbers.",
       category: "Arrays",
       difficulty: "easy",
+      sampleTests: [
+        {
+          input: "[[2, 7, 11, 15], 9]",
+          expected: "[0, 1]"
+        },
+        {
+          input: "[[3, 2, 4], 6]",
+          expected: "[1, 2]"
+        },
+        {
+          input: "[[3, 3], 6]",
+          expected: "[0, 1]"
+        }
+      ]
     },
     {
       id: "default_t2",
@@ -94,6 +110,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
       question: "Implement a function to reverse a linked list. Explain your approach and time complexity.",
       category: "Linked Lists",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[[1, 2, 3, 4, 5]]",
+          expected: "[5, 4, 3, 2, 1]"
+        },
+        {
+          input: "[[1, 2]]",
+          expected: "[2, 1]"
+        },
+        {
+          input: "[[]]",
+          expected: "[]"
+        }
+      ]
     },
     {
       id: "default_t3",
@@ -110,6 +140,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Write a function to determine if a binary tree is a valid binary search tree. What's the time and space complexity?",
       category: "Trees",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[[2, 1, 3]]",
+          expected: "true"
+        },
+        {
+          input: "[[5, 1, 4, null, null, 3, 6]]",
+          expected: "false"
+        },
+        {
+          input: "[[1, 1]]",
+          expected: "false"
+        }
+      ]
     },
     {
       id: "default_t5",
@@ -118,6 +162,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Given a string, find the length of the longest substring without repeating characters. Optimize for time complexity.",
       category: "Strings",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[\"abcabcbb\"]",
+          expected: "3"
+        },
+        {
+          input: "[\"bbbbb\"]",
+          expected: "1"
+        },
+        {
+          input: "[\"pwwkew\"]",
+          expected: "3"
+        }
+      ]
     },
   ]
 

@@ -81,15 +81,30 @@ export class GeminiClient {
     - The question text (algorithm or data structure problem)
     - A category (e.g., Arrays, Strings, Trees, Dynamic Programming, System Design)
     - A difficulty level (easy, medium, or hard)
+    - Sample test cases (2-3 test cases with input and expected output)
     
     Format the response as a JSON array with this structure:
     [
       {
         "question": "question text here",
         "category": "category name",
-        "difficulty": "medium"
+        "difficulty": "medium",
+        "sampleTests": [
+          {
+            "input": "JSON string of input parameters",
+            "expected": "JSON string of expected output"
+          }
+        ]
       }
     ]
+    
+    For sample tests:
+    - Use JSON strings for both input and expected values
+    - For array problems, use arrays like "[2, 7, 11, 15]"
+    - For string problems, use strings like "\"hello world\""
+    - For multiple parameters, use arrays like "[1, 2, 3, 4]"
+    - Make test cases cover edge cases and normal cases
+    - Expected outputs should be the exact return value as JSON strings
     
     Make the questions realistic and similar to those asked at top tech companies.`
 
