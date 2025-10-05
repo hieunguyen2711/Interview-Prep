@@ -21,7 +21,7 @@ export class GeminiClient {
     this.apiKey = apiKey
   }
 
-  async generateContent(prompt: string, model = "gemini-pro"): Promise<string> {
+  async generateContent(prompt: string, model = "gemini-2.5-flash"): Promise<string> {
     try {
       const response = await fetch(`${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`, {
         method: "POST",
@@ -31,6 +31,7 @@ export class GeminiClient {
         body: JSON.stringify({
           contents: [
             {
+              role: "user",
               parts: [{ text: prompt }],
             },
           ],
@@ -40,7 +41,7 @@ export class GeminiClient {
             topP: 0.95,
             maxOutputTokens: 2048,
           },
-        }),
+        }),        
       })
 
       if (!response.ok) {
