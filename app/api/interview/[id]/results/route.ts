@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { generateFeedback, generateOverallFeedback } from "@/lib/feedback-generator"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-  const { id } = await params
+    const { id } = await params
 
     // Retrieve the session (still from global memory for now)
     const sessions = typeof global !== "undefined" ? (global as any).interviewSessions || {} : {}

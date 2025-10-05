@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { Document, Packer, Paragraph, HeadingLevel } from "docx"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
 
   try {
     // Fetch actual interview results from the same host (relative) to avoid cross-host issues

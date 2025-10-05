@@ -2,9 +2,9 @@ import { NextResponse } from "next/server"
 import { generateFeedback } from "@/lib/feedback-generator"
 import type { InterviewQuestion, InterviewResponse } from "@/types/interview"
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params
+    const { id } = await params
     const { questionId, transcript } = await request.json()
 
     if (!questionId || !transcript) {
