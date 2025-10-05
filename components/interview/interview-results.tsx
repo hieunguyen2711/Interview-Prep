@@ -3,9 +3,18 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Home, Download, TrendingUp, TrendingDown, CheckCircle2, AlertCircle, Code } from "lucide-react"
+import {
+  Home,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle2,
+  AlertCircle,
+  Code,
+} from "lucide-react"
 import type { InterviewQuestion, InterviewResponse, FeedbackResult } from "@/types/interview"
 import Link from "next/link"
+import { saveAs } from "file-saver"
 
 interface InterviewResultsProps {
   sessionId: string
@@ -24,6 +33,7 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
   const [feedbacks, setFeedbacks] = useState<FeedbackResult[]>([])
   const [overallFeedback, setOverallFeedback] = useState<OverallFeedback | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     loadResults()
@@ -31,7 +41,6 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
 
   const loadResults = async () => {
     try {
-      // Option 1: Use existing results endpoint (current approach)
       const response = await fetch(`/api/interview/${sessionId}/results`)
       const data = await response.json()
 
@@ -39,37 +48,25 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
       setResponses(data.responses || [])
       setFeedbacks(data.feedbacks || [])
       setOverallFeedback(data.overallFeedback || null)
-
-      /* Option 2: Direct LLM API call (alternative approach)
-      // First get session data without feedback
-      const sessionResponse = await fetch(`/api/interview/${sessionId}`)
-      const sessionData = await sessionResponse.json()
-      
-      if (sessionData.questions && sessionData.responses) {
-        // Call LLM API directly for feedback generation
-        const llmResponse = await fetch('/api/llm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            questions: sessionData.questions,
-            responses: sessionData.responses
-          })
-        })
-        
-        const llmData = await llmResponse.json()
-        
-        setQuestions(llmData.questions || [])
-        setResponses(llmData.responses || [])
-        setFeedbacks(llmData.feedbacks || [])
-        setOverallFeedback(llmData.overallFeedback || null)
-      }
-      */
     } catch (error) {
       console.error("[v0] Error loading results:", error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDownloadReport = async () => {
+    try {
+      setIsDownloading(true)
+      const res = await fetch(`/api/interview/${sessionId}/report`)
+      if (!res.ok) throw new Error("Failed to fetch report")
+
+      const blob = await res.blob()
+      saveAs(blob, `interview-report-${sessionId}.docx`)
+    } catch (err) {
+      console.error("Download failed", err)
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -118,10 +115,16 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
                 </p>
               </div>
               <div className="text-center">
-                <div className={`text-5xl font-bold ${getScoreColor(overallFeedback.overallScore)}`}>
+                <div
+                  className={`text-5xl font-bold ${getScoreColor(
+                    overallFeedback.overallScore,
+                  )}`}
+                >
                   {overallFeedback.overallScore}
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">{getScoreLabel(overallFeedback.overallScore)}</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {getScoreLabel(overallFeedback.overallScore)}
+                </div>
               </div>
             </div>
             <Progress value={overallFeedback.overallScore} className="h-3 mb-6" />
@@ -181,17 +184,23 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-medium text-muted-foreground">Question {index + 1}</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Question {index + 1}
+                        </span>
                         {question?.category && (
                           <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
                             {question.category}
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold leading-relaxed text-balance">{question?.question}</h3>
+                      <h3 className="text-lg font-semibold leading-relaxed text-balance">
+                        {question?.question}
+                      </h3>
                     </div>
                     <div className="text-center ml-4">
-                      <div className={`text-3xl font-bold ${getScoreColor(feedback.score)}`}>{feedback.score}</div>
+                      <div className={`text-3xl font-bold ${getScoreColor(feedback.score)}`}>
+                        {feedback.score}
+                      </div>
                       <div className="text-xs text-muted-foreground">/ 100</div>
                     </div>
                   </div>
@@ -246,7 +255,9 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
 
                     <div>
                       <h4 className="text-sm font-semibold mb-2">Detailed Analysis</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{feedback.detailedAnalysis}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {feedback.detailedAnalysis}
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -263,9 +274,9 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
               Back to Home
             </Button>
           </Link>
-          <Button>
+          <Button onClick={handleDownloadReport} disabled={isDownloading}>
             <Download className="mr-2 h-4 w-4" />
-            Download Report
+            {isDownloading ? "Generating..." : "Download Report"}
           </Button>
         </div>
       </div>
