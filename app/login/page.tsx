@@ -14,7 +14,7 @@ export default function LoginPage() {
               <Brain className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to InterviewPrep AI</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome to Mock Mate</CardTitle>
           <CardDescription>
             Choose an option below to continue with your Google account
           </CardDescription>

@@ -194,16 +194,16 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
         {/* Progress Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-muted-foreground">
+            <h2 className="text-sm font-medium text-gray-400">
               Question {currentQuestionIndex + 1} of {questions.length}
             </h2>
-            <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
+            <span className="text-sm font-medium text-gray-400">{Math.round(progress)}% Complete</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2 bg-gray-800" />
         </div>
 
         {/* Question Card */}
-        <Card className="p-8 mb-6 bg-card border-border">
+        <Card className="p-8 mb-6 bg-gradient-to-br from-gray-900 to-black border border-red-600/30 shadow-lg shadow-red-500/10">
           <QuestionDisplay question={currentQuestion} />
         </Card>
 
@@ -216,7 +216,7 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
 
         {/* Voice Recorder (behavioral only) */}
         {interviewType === "behavioral" && (
-          <Card className="p-8 mb-6 bg-card border-border">
+          <Card className="p-8 mb-6 bg-gradient-to-br from-gray-900 to-black border border-red-600/30 shadow-lg shadow-red-500/10">
             <NativeVoiceRecorder
               isRecording={isRecording}
               onStartRecording={handleStartRecording}
@@ -242,18 +242,33 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={handleNextQuestion} disabled={!hasResponse || isLastQuestion}>
+          <Button 
+            variant="outline" 
+            onClick={handleNextQuestion} 
+            disabled={!hasResponse || isLastQuestion}
+            className="border-red-600/30 text-white hover:bg-red-600/10 hover:border-red-500 transition-all duration-300"
+          >
             Skip Question
             <SkipForward className="ml-2 h-4 w-4" />
           </Button>
 
           {isLastQuestion ? (
-            <Button onClick={handleFinishInterview} disabled={!hasResponse} size="lg">
+            <Button 
+              onClick={handleFinishInterview} 
+              disabled={!hasResponse} 
+              size="lg"
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 border-2 border-red-500/50 hover:border-red-400 transition-all duration-300 shadow-lg shadow-red-500/25 hover:shadow-red-500/40"
+            >
               Finish Interview
               <CheckCircle className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleNextQuestion} disabled={!hasResponse} size="lg">
+            <Button 
+              onClick={handleNextQuestion} 
+              disabled={!hasResponse} 
+              size="lg"
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 border-2 border-red-500/50 hover:border-red-400 transition-all duration-300 shadow-lg shadow-red-500/25 hover:shadow-red-500/40"
+            >
               Next Question
               <SkipForward className="ml-2 h-4 w-4" />
             </Button>

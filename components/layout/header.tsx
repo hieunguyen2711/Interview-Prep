@@ -23,26 +23,36 @@ export function Header() {
   }, [])
 
   return (
-    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <header className="border-b border-red-600/30 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60 sticky top-0 z-50 shadow-lg shadow-red-500/10 relative overflow-hidden">
+      {/* Subtle Spider Web Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-red-500/5 to-transparent"></div>
+        <div className="absolute top-2 right-2 w-8 h-8 border border-red-500/10 rounded-full"></div>
+        <div className="absolute bottom-2 left-2 w-6 h-6 border border-red-500/10 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/4 w-4 h-4 border border-red-500/10 rounded-full"></div>
+      </div>
+      
+      <div className="container mx-auto px-4 relative">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Brain className="h-5 w-5 text-primary" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="p-2 bg-red-600/20 rounded-lg border border-red-600/30 group-hover:bg-red-600/30 transition-all duration-300">
+              <Brain className="h-6 w-6 text-red-500" />
             </div>
-            <span className="font-bold text-lg">InterviewPrep AI</span>
+            <span className="font-bold text-xl text-white group-hover:text-red-400 transition-colors duration-300">
+              Mock Mate
+            </span>
           </Link>
 
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-3">
             <Link href="/">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600/10 border border-transparent hover:border-red-600/30 transition-all duration-300">
                 <Home className="mr-2 h-4 w-4" />
                 Home
               </Button>
             </Link>
             {user && (
               <Link href="/dashboard">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600/10 border border-transparent hover:border-red-600/30 transition-all duration-300">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Button>

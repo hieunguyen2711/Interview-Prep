@@ -139,8 +139,8 @@ export function NativeVoiceRecorder({ isRecording, onStartRecording, onStopRecor
   return (
     <div className="text-center">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Your Response</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <h3 className="text-lg font-semibold mb-2 text-white">Your Response</h3>
+        <p className="text-sm text-gray-400 leading-relaxed">
           {isProcessing
             ? "Listening... Speak clearly and naturally."
             : isRecording
@@ -150,41 +150,63 @@ export function NativeVoiceRecorder({ isRecording, onStartRecording, onStopRecor
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <p className="text-sm text-destructive">{error}</p>
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-600/30 rounded-lg">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
       {/* Live transcript preview */}
       {isRecording && currentTranscript && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-600 font-medium mb-1">Live Transcript:</p>
-          <p className="text-sm text-blue-800">{currentTranscript}</p>
+        <div className="mb-4 p-3 bg-red-900/10 border border-red-600/30 rounded-lg">
+          <p className="text-xs text-red-400 font-medium mb-1">Live Transcript:</p>
+          <p className="text-sm text-white font-mono">{currentTranscript}</p>
         </div>
       )}
 
       <div className="flex flex-col items-center gap-6">
         {isRecording && (
-          <div className="flex items-center gap-3 text-primary">
+          <div className="flex items-center gap-3 text-red-500">
             <Circle className="h-3 w-3 fill-current animate-pulse" />
-            <span className="text-2xl font-mono font-semibold">{formatTime(recordingTime)}</span>
+            <span className="text-2xl font-mono font-semibold text-white">{formatTime(recordingTime)}</span>
           </div>
         )}
 
         <div className="flex items-center gap-4">
           {!isRecording ? (
-            <Button onClick={handleStart} size="lg" className="h-16 w-16 rounded-full" disabled={isProcessing}>
-              <Mic className="h-6 w-6" />
+            <Button 
+              onClick={handleStart} 
+              size="lg" 
+              className="h-20 w-20 rounded-full bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 border-2 border-red-500/50 hover:border-red-400 hover:scale-105 transition-all duration-300 shadow-lg shadow-red-500/25 hover:shadow-red-500/40 relative overflow-hidden" 
+              disabled={isProcessing}
+            >
+              {/* Subtle Spider Web Pattern on Button */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-1 left-1 w-3 h-3 border border-white/20 rounded-full"></div>
+                <div className="absolute bottom-1 right-1 w-2 h-2 border border-white/20 rounded-full"></div>
+                <div className="absolute top-1/2 left-1/2 w-1 h-1 border border-white/20 rounded-full"></div>
+              </div>
+              <Mic className="h-8 w-8 text-white relative z-10" />
             </Button>
           ) : (
-            <Button onClick={handleStop} size="lg" variant="destructive" className="h-16 w-16 rounded-full">
-              <MicOff className="h-6 w-6" />
+            <Button 
+              onClick={handleStop} 
+              size="lg" 
+              variant="destructive" 
+              className="h-20 w-20 rounded-full bg-gradient-to-br from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 border-2 border-red-600/50 hover:border-red-500 hover:scale-105 transition-all duration-300 shadow-lg shadow-red-600/30 hover:shadow-red-600/50 animate-pulse relative overflow-hidden"
+            >
+              {/* Subtle Spider Web Pattern on Button */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-1 left-1 w-3 h-3 border border-white/20 rounded-full"></div>
+                <div className="absolute bottom-1 right-1 w-2 h-2 border border-white/20 rounded-full"></div>
+                <div className="absolute top-1/2 left-1/2 w-1 h-1 border border-white/20 rounded-full"></div>
+              </div>
+              <MicOff className="h-8 w-8 text-white relative z-10" />
             </Button>
           )}
         </div>
 
         {!isRecording && !isProcessing && (
-          <p className="text-xs text-muted-foreground max-w-md">
+          <p className="text-xs text-gray-400 max-w-md">
             Make sure your microphone is enabled and you're in a quiet environment for best results
           </p>
         )}

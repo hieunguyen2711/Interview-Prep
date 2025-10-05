@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "InterviewPrep AI - Master Your Interview Skills",
+  title: "Mock Mate - Master Your Interview Skills",
   description: "Practice interviews with AI-powered feedback and improve your performance",
     generator: 'v0.app'
 }

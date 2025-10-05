@@ -102,7 +102,7 @@ export function ProgressDashboard() {
           <StatsCard
             icon={<Calendar className="h-5 w-5" />}
             label="Practice Streak"
-            value="3 days"
+            value="0 days"
             trend="Keep it up!"
             iconColor="bg-orange-500/10 text-orange-500"
           />
