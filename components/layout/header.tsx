@@ -1,8 +1,14 @@
+'use client';
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Brain, LayoutDashboard, Home } from "lucide-react"
+import { Brain, LayoutDashboard, Home, LogIn } from "lucide-react"
+import UserProfile from "@/components/auth/user-profile"
+import { useUser } from '@auth0/nextjs-auth0'
 
 export function Header() {
+  const { user } = useUser();
+
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -21,12 +27,15 @@ export function Header() {
                 Home
               </Button>
             </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Dashboard
-              </Button>
-            </Link>
+            {user && (
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            )}
+            <UserProfile />
           </nav>
         </div>
       </div>
