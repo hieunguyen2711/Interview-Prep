@@ -136,7 +136,7 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
         {/* Code Editor for Technical Questions */}
         {interviewType === "technical" && (
           <div className="mb-6">
-            <CodeEditor questionId={currentQuestion.id} onCodeSubmit={handleCodeSubmit} />
+            <CodeEditor question={currentQuestion} onCodeSubmit={handleCodeSubmit} />
           </div>
         )}
 

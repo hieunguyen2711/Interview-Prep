@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = params
+  const { id } = await params
 
     const sessions = typeof global !== "undefined" ? (global as any).interviewSessions || {} : {}
     const session = sessions[id]
