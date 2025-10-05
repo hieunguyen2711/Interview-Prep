@@ -5,10 +5,10 @@ import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { SkipForward, CheckCircle } from "lucide-react"
 import type { InterviewQuestion, InterviewResponse } from "@/types/interview"
-import { VoiceRecorder } from "./voice-recorder"
 import { QuestionDisplay } from "./question-display"
 import { ResponseTranscript } from "./response-transcript"
 import { CodeEditor } from "./code-editor"
+import { VoiceRecorder } from "./voice-recorder"
 
 interface InterviewSessionProps {
   sessionId: string
@@ -42,6 +42,14 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
     }
   }
 
+
+  const handleCodeSubmit = (code: string, output: string) => {
+    setCurrentCode(code)
+    setCurrentTranscript(
+      `Code Solution:\n\n${code}\n\nExecution Output:\n${output}\n\nExplanation: ${currentTranscript || "Provided code solution above"}`,
+    )
+  }
+
   const handleStartRecording = () => {
     setIsRecording(true)
     setCurrentTranscript("")
@@ -70,13 +78,6 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
     } catch (error) {
       console.error("[v0] Error saving response:", error)
     }
-  }
-
-  const handleCodeSubmit = (code: string, output: string) => {
-    setCurrentCode(code)
-    setCurrentTranscript(
-      `Code Solution:\n\n${code}\n\nExecution Output:\n${output}\n\nExplanation: ${currentTranscript || "Provided code solution above"}`,
-    )
   }
 
   const handleNextQuestion = () => {
@@ -136,18 +137,21 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
         {/* Code Editor for Technical Questions */}
         {interviewType === "technical" && (
           <div className="mb-6">
-            <CodeEditor questionId={currentQuestion.id} onCodeSubmit={handleCodeSubmit} />
+            <CodeEditor question={currentQuestion} onCodeSubmit={handleCodeSubmit} />
           </div>
         )}
 
-        {/* Voice Recorder */}
-        <Card className="p-8 mb-6 bg-card border-border">
-          <VoiceRecorder
-            isRecording={isRecording}
-            onStartRecording={handleStartRecording}
-            onStopRecording={handleStopRecording}
-          />
-        </Card>
+        {/* Voice Recorder (behavioral only) */}
+        {interviewType === "behavioral" && (
+          <Card className="p-8 mb-6 bg-card border-border">
+            <VoiceRecorder
+              isRecording={isRecording}
+              onStartRecording={handleStartRecording}
+              onStopRecording={handleStopRecording}
+            />
+          </Card>
+        )}
+
 
         {/* Transcript Display */}
         {currentTranscript && (

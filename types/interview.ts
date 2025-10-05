@@ -6,6 +6,8 @@ export interface InterviewQuestion {
   question: string
   category?: string
   difficulty?: "easy" | "medium" | "hard"
+  // Optional sample tests for technical questions. Each test has an input (string) and expected output (string).
+  sampleTests?: { input: string; expected: string }[]
 }
 
 export interface InterviewResponse {

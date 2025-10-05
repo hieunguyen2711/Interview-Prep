@@ -5,37 +5,77 @@ interface QuestionData {
   question: string
   category: string
   difficulty: "easy" | "medium" | "hard"
+  sampleTests?: { input: string; expected: string }[]
 }
 
 export async function generateInterviewQuestions(type: InterviewType, count = 5): Promise<InterviewQuestion[]> {
-  // try {
-  const gemini = getGeminiClient()
-  const response = await gemini.generateInterviewQuestions(type, count)
+  try {
+    const gemini = getGeminiClient()
+    const response = await gemini.generateInterviewQuestions(type, count)
 
-  // Parse the JSON response
-  const jsonMatch = response.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    throw new Error("Failed to parse questions from Gemini response")
+    // Try several extraction strategies to handle model output formats:
+    // 1) ```json ... ```
+    // 2) ``` ... ``` fenced code block
+    // 3) raw JSON array [ ... ]
+    // 4) first '[' to last ']' fallback
+    let jsonText: string | null = null
+
+    const tryMatch = (regex: RegExp) => {
+      const m = response.match(regex)
+      return m ? m[1] ?? m[0] : null
+    }
+
+    // 1) ```json ... ```
+    jsonText = tryMatch(/```json([\s\S]*?)```/i)
+
+    // 2) ``` ... ``` (any fenced block)
+    if (!jsonText) jsonText = tryMatch(/```([\s\S]*?)```/)
+
+    // 3) raw JSON array
+    if (!jsonText) jsonText = tryMatch(/(\[[\s\S]*\])/)
+
+    // 4) first '[' to last ']' fallback
+    if (!jsonText) {
+      const first = response.indexOf("[")
+      const last = response.lastIndexOf("]")
+      if (first !== -1 && last !== -1 && last > first) {
+        jsonText = response.slice(first, last + 1)
+      }
+    }
+
+    if (!jsonText) {
+      console.error("[v0] Unable to locate JSON in Gemini response:", response)
+      throw new Error("Failed to parse questions from Gemini response")
+    }
+
+    // Clean up common issues: remove trailing commas before closing braces/brackets
+    jsonText = jsonText.replace(/,\s*(?=[}\]])/g, "")
+
+    let questionsData: QuestionData[]
+    try {
+      questionsData = JSON.parse(jsonText)
+    } catch (err) {
+      console.error("[v0] JSON.parse failed for extracted text:", jsonText, err)
+      throw new Error("Failed to parse questions from Gemini response")
+    }
+
+    // Transform to InterviewQuestion format
+    const questions: InterviewQuestion[] = questionsData.slice(0, count).map((q, index) => ({
+      id: `q_${Date.now()}_${index}`,
+      type,
+      question: q.question,
+      category: q.category,
+      difficulty: q.difficulty,
+      sampleTests: q.sampleTests,
+    }))
+
+    return questions
+  } catch (error) {
+    console.error("[v0] Error generating questions:", error)
+
+    // Fallback to default questions if API fails
+    return getDefaultQuestions(type, count)
   }
-
-  const questionsData: QuestionData[] = JSON.parse(jsonMatch[0])
-
-  // Transform to InterviewQuestion format
-  const questions: InterviewQuestion[] = questionsData.map((q, index) => ({
-    id: `q_${Date.now()}_${index}`,
-    type,
-    question: q.question,
-    category: q.category,
-    difficulty: q.difficulty,
-  }))
-
-  return questions
-  // } catch (error) {
-  //   console.error("[v0] Error generating questions:", error)
-
-  //   // Fallback to default questions if API fails
-  //   return getDefaultQuestions(type, count)
-  // }
 }
 
 function getDefaultQuestions(type: InterviewType, count: number): InterviewQuestion[] {
@@ -87,6 +127,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Given an array of integers, find two numbers that add up to a specific target. Return the indices of the two numbers.",
       category: "Arrays",
       difficulty: "easy",
+      sampleTests: [
+        {
+          input: "[[2, 7, 11, 15], 9]",
+          expected: "[0, 1]"
+        },
+        {
+          input: "[[3, 2, 4], 6]",
+          expected: "[1, 2]"
+        },
+        {
+          input: "[[3, 3], 6]",
+          expected: "[0, 1]"
+        }
+      ]
     },
     {
       id: "default_t2",
@@ -94,6 +148,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
       question: "Implement a function to reverse a linked list. Explain your approach and time complexity.",
       category: "Linked Lists",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[[1, 2, 3, 4, 5]]",
+          expected: "[5, 4, 3, 2, 1]"
+        },
+        {
+          input: "[[1, 2]]",
+          expected: "[2, 1]"
+        },
+        {
+          input: "[[]]",
+          expected: "[]"
+        }
+      ]
     },
     {
       id: "default_t3",
@@ -110,6 +178,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Write a function to determine if a binary tree is a valid binary search tree. What's the time and space complexity?",
       category: "Trees",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[[2, 1, 3]]",
+          expected: "true"
+        },
+        {
+          input: "[[5, 1, 4, null, null, 3, 6]]",
+          expected: "false"
+        },
+        {
+          input: "[[1, 1]]",
+          expected: "false"
+        }
+      ]
     },
     {
       id: "default_t5",
@@ -118,6 +200,20 @@ function getDefaultQuestions(type: InterviewType, count: number): InterviewQuest
         "Given a string, find the length of the longest substring without repeating characters. Optimize for time complexity.",
       category: "Strings",
       difficulty: "medium",
+      sampleTests: [
+        {
+          input: "[\"abcabcbb\"]",
+          expected: "3"
+        },
+        {
+          input: "[\"bbbbb\"]",
+          expected: "1"
+        },
+        {
+          input: "[\"pwwkew\"]",
+          expected: "3"
+        }
+      ]
     },
   ]
 
