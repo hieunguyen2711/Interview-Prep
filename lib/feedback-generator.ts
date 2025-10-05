@@ -10,6 +10,25 @@ export async function generateFeedback(
   question: InterviewQuestion,
   response: InterviewResponse,
 ): Promise<FeedbackResult> {
+  // Check if response is a placeholder/sample text
+  const isPlaceholder = response.transcript.includes("This is a sample transcript") || 
+                       response.transcript.includes("Please configure ELEVENLABS_API_KEY") ||
+                       response.transcript.trim().length < 10
+
+  if (isPlaceholder) {
+    console.log("[feedback] Skipping feedback generation for placeholder response:", response.transcript.substring(0, 50))
+    return {
+      questionId: question.id,
+      responseId: response.questionId,
+      score: 0,
+      strengths: [],
+      improvements: ["Please provide your actual response to this question"],
+      detailedAnalysis: "No response was provided for this question. Please answer the question to receive feedback.",
+      sentiment: "neutral",
+      generatedAt: new Date(),
+    }
+  }
+
   const gemini = getGeminiClient()
   const feedbackText = await gemini.evaluateResponse(
     question.question,
@@ -17,7 +36,7 @@ export async function generateFeedback(
     question.type
   )
 
-  console.log("Raw Gemini response:", feedbackText)
+  console.log("Raw Gemini response:", feedbackText.substring(0, 200) + "...")
 
   try {
     const feedbackData = JSON.parse(extractJson(feedbackText))
@@ -33,21 +52,24 @@ export async function generateFeedback(
       generatedAt: new Date(),
     }
   } catch (error) {
-    console.error("[v0] Error parsing Gemini feedback:", error, feedbackText)
+    console.error("[v0] Error parsing Gemini feedback:", error, "\nResponse snippet:", feedbackText.substring(0, 200))
 
-    // Fallback feedback if parsing fails
+    // Enhanced fallback feedback based on response content
+    const responseLength = response.transcript.length
+    const fallbackScore = responseLength > 200 ? 65 : responseLength > 100 ? 55 : 45
+    
     return {
       questionId: question.id,
       responseId: response.questionId,
-      score: 75,
-      strengths: ["You provided a clear response to the question", "Your answer demonstrated relevant experience"],
+      score: fallbackScore,
+      strengths: ["You provided a response to the question"],
       improvements: [
-        "Consider adding more specific examples and metrics",
-        "Structure your response using the STAR method for better clarity",
+        "LLM feedback generation failed - manual review recommended",
+        "Consider providing more detailed examples",
+        "Structure your response using the STAR method",
       ],
-      detailedAnalysis:
-        "Your response shows good understanding of the question. To improve, focus on providing more concrete examples with measurable outcomes. Consider structuring your answers using the STAR method (Situation, Task, Action, Result).",
-      sentiment: "positive",
+      detailedAnalysis: `Feedback generation encountered an error. Your response (${responseLength} characters) was received but couldn't be fully analyzed. Please ensure your response is complete and detailed.`,
+      sentiment: "neutral",
       generatedAt: new Date(),
     }
   }
