@@ -19,15 +19,10 @@ export default function HomePage() {
             your performance and land your dream job.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/interview/new">
+            <Link href="/login">
               <Button size="lg" className="h-12 px-8">
                 Start Practicing
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline" className="h-12 px-8 bg-transparent">
-                View Dashboard
               </Button>
             </Link>
           </div>
@@ -126,7 +121,7 @@ export default function HomePage() {
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-2xl mx-auto">
             Start practicing today and get AI-powered feedback to improve your interview performance
           </p>
-          <Link href="/interview/new">
+          <Link href="/login">
             <Button size="lg" className="h-12 px-8">
               Start Your First Interview
               <ArrowRight className="ml-2 h-4 w-4" />
