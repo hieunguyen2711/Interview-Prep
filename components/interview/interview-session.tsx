@@ -8,6 +8,7 @@ import type { InterviewQuestion, InterviewResponse } from "@/types/interview"
 import { QuestionDisplay } from "./question-display"
 import { ResponseTranscript } from "./response-transcript"
 import { CodeEditor } from "./code-editor"
+import { VoiceRecorder } from "./voice-recorder"
 
 interface InterviewSessionProps {
   sessionId: string
@@ -17,6 +18,7 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [responses, setResponses] = useState<InterviewResponse[]>([])
+  const [isRecording, setIsRecording] = useState(false)
   const [currentTranscript, setCurrentTranscript] = useState("")
   const [currentCode, setCurrentCode] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -46,6 +48,36 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
     setCurrentTranscript(
       `Code Solution:\n\n${code}\n\nExecution Output:\n${output}\n\nExplanation: ${currentTranscript || "Provided code solution above"}`,
     )
+  }
+
+  const handleStartRecording = () => {
+    setIsRecording(true)
+    setCurrentTranscript("")
+  }
+
+  const handleStopRecording = async (transcript: string, audioBlob?: Blob) => {
+    setIsRecording(false)
+    setCurrentTranscript(transcript)
+
+    // Save response
+    const newResponse: InterviewResponse = {
+      questionId: questions[currentQuestionIndex].id,
+      transcript,
+      timestamp: new Date(),
+      code: currentCode || undefined,
+    }
+
+    try {
+      await fetch(`/api/interview/${sessionId}/response`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newResponse),
+      })
+
+      setResponses([...responses, newResponse])
+    } catch (error) {
+      console.error("[v0] Error saving response:", error)
+    }
   }
 
   const handleNextQuestion = () => {
@@ -107,6 +139,17 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
           <div className="mb-6">
             <CodeEditor question={currentQuestion} onCodeSubmit={handleCodeSubmit} />
           </div>
+        )}
+
+        {/* Voice Recorder (behavioral only) */}
+        {interviewType === "behavioral" && (
+          <Card className="p-8 mb-6 bg-card border-border">
+            <VoiceRecorder
+              isRecording={isRecording}
+              onStartRecording={handleStartRecording}
+              onStopRecording={handleStopRecording}
+            />
+          </Card>
         )}
 
 

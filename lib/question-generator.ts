@@ -9,20 +9,58 @@ interface QuestionData {
 }
 
 export async function generateInterviewQuestions(type: InterviewType, count = 5): Promise<InterviewQuestion[]> {
-  // try {
-  const gemini = getGeminiClient()
-  const response = await gemini.generateInterviewQuestions(type, count)
+  try {
+    const gemini = getGeminiClient()
+    const response = await gemini.generateInterviewQuestions(type, count)
 
-  // Parse the JSON response
-  const jsonMatch = response.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    throw new Error("Failed to parse questions from Gemini response")
-  }
+    // Try several extraction strategies to handle model output formats:
+    // 1) ```json ... ```
+    // 2) ``` ... ``` fenced code block
+    // 3) raw JSON array [ ... ]
+    // 4) first '[' to last ']' fallback
+    let jsonText: string | null = null
 
-  const questionsData: QuestionData[] = JSON.parse(jsonMatch[0])
+    const tryMatch = (regex: RegExp) => {
+      const m = response.match(regex)
+      return m ? m[1] ?? m[0] : null
+    }
+
+    // 1) ```json ... ```
+    jsonText = tryMatch(/```json([\s\S]*?)```/i)
+
+    // 2) ``` ... ``` (any fenced block)
+    if (!jsonText) jsonText = tryMatch(/```([\s\S]*?)```/)
+
+    // 3) raw JSON array
+    if (!jsonText) jsonText = tryMatch(/(\[[\s\S]*\])/)
+
+    // 4) first '[' to last ']' fallback
+    if (!jsonText) {
+      const first = response.indexOf("[")
+      const last = response.lastIndexOf("]")
+      if (first !== -1 && last !== -1 && last > first) {
+        jsonText = response.slice(first, last + 1)
+      }
+    }
+
+    if (!jsonText) {
+      console.error("[v0] Unable to locate JSON in Gemini response:", response)
+      throw new Error("Failed to parse questions from Gemini response")
+    }
+
+    // Clean up common issues: remove trailing commas before closing braces/brackets
+    jsonText = jsonText.replace(/,\s*(?=[}\]])/g, "")
+
+    let questionsData: QuestionData[]
+    try {
+      questionsData = JSON.parse(jsonText)
+    } catch (err) {
+      console.error("[v0] JSON.parse failed for extracted text:", jsonText, err)
+      throw new Error("Failed to parse questions from Gemini response")
+    }
 
     // Transform to InterviewQuestion format
-    const questions: InterviewQuestion[] = questionsData.map((q, index) => ({
+    const questions: InterviewQuestion[] = questionsData.slice(0, count).map((q, index) => ({
       id: `q_${Date.now()}_${index}`,
       type,
       question: q.question,
@@ -30,22 +68,14 @@ export async function generateInterviewQuestions(type: InterviewType, count = 5)
       difficulty: q.difficulty,
       sampleTests: q.sampleTests,
     }))
-  // Transform to InterviewQuestion format
-  const questions: InterviewQuestion[] = questionsData.map((q, index) => ({
-    id: `q_${Date.now()}_${index}`,
-    type,
-    question: q.question,
-    category: q.category,
-    difficulty: q.difficulty,
-  }))
 
-  return questions
-  // } catch (error) {
-  //   console.error("[v0] Error generating questions:", error)
+    return questions
+  } catch (error) {
+    console.error("[v0] Error generating questions:", error)
 
-  //   // Fallback to default questions if API fails
-  //   return getDefaultQuestions(type, count)
-  // }
+    // Fallback to default questions if API fails
+    return getDefaultQuestions(type, count)
+  }
 }
 
 function getDefaultQuestions(type: InterviewType, count: number): InterviewQuestion[] {
