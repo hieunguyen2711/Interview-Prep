@@ -9,17 +9,17 @@ interface QuestionData {
 }
 
 export async function generateInterviewQuestions(type: InterviewType, count = 5): Promise<InterviewQuestion[]> {
-  try {
-    const gemini = getGeminiClient()
-    const response = await gemini.generateInterviewQuestions(type, count)
+  // try {
+  const gemini = getGeminiClient()
+  const response = await gemini.generateInterviewQuestions(type, count)
 
-    // Parse the JSON response
-    const jsonMatch = response.match(/\[[\s\S]*\]/)
-    if (!jsonMatch) {
-      throw new Error("Failed to parse questions from Gemini response")
-    }
+  // Parse the JSON response
+  const jsonMatch = response.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) {
+    throw new Error("Failed to parse questions from Gemini response")
+  }
 
-    const questionsData: QuestionData[] = JSON.parse(jsonMatch[0])
+  const questionsData: QuestionData[] = JSON.parse(jsonMatch[0])
 
     // Transform to InterviewQuestion format
     const questions: InterviewQuestion[] = questionsData.map((q, index) => ({
@@ -30,14 +30,22 @@ export async function generateInterviewQuestions(type: InterviewType, count = 5)
       difficulty: q.difficulty,
       sampleTests: q.sampleTests,
     }))
+  // Transform to InterviewQuestion format
+  const questions: InterviewQuestion[] = questionsData.map((q, index) => ({
+    id: `q_${Date.now()}_${index}`,
+    type,
+    question: q.question,
+    category: q.category,
+    difficulty: q.difficulty,
+  }))
 
-    return questions
-  } catch (error) {
-    console.error("[v0] Error generating questions:", error)
+  return questions
+  // } catch (error) {
+  //   console.error("[v0] Error generating questions:", error)
 
-    // Fallback to default questions if API fails
-    return getDefaultQuestions(type, count)
-  }
+  //   // Fallback to default questions if API fails
+  //   return getDefaultQuestions(type, count)
+  // }
 }
 
 function getDefaultQuestions(type: InterviewType, count: number): InterviewQuestion[] {
