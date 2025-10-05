@@ -3,7 +3,7 @@ import { generateFeedback, generateOverallFeedback } from "@/lib/feedback-genera
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = params
+  const { id } = await params
 
     // Retrieve the session (still from global memory for now)
     const sessions = typeof global !== "undefined" ? (global as any).interviewSessions || {} : {}

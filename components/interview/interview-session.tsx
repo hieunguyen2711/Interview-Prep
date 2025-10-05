@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { SkipForward, CheckCircle } from "lucide-react"
 import type { InterviewQuestion, InterviewResponse } from "@/types/interview"
-import { VoiceRecorder } from "./voice-recorder"
 import { QuestionDisplay } from "./question-display"
 import { ResponseTranscript } from "./response-transcript"
 import { CodeEditor } from "./code-editor"
@@ -18,7 +17,6 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [responses, setResponses] = useState<InterviewResponse[]>([])
-  const [isRecording, setIsRecording] = useState(false)
   const [currentTranscript, setCurrentTranscript] = useState("")
   const [currentCode, setCurrentCode] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -42,35 +40,6 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
     }
   }
 
-  const handleStartRecording = () => {
-    setIsRecording(true)
-    setCurrentTranscript("")
-  }
-
-  const handleStopRecording = async (transcript: string, audioBlob?: Blob) => {
-    setIsRecording(false)
-    setCurrentTranscript(transcript)
-
-    // Save response
-    const newResponse: InterviewResponse = {
-      questionId: questions[currentQuestionIndex].id,
-      transcript,
-      timestamp: new Date(),
-      code: currentCode || undefined,
-    }
-
-    try {
-      await fetch(`/api/interview/${sessionId}/response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newResponse),
-      })
-
-      setResponses([...responses, newResponse])
-    } catch (error) {
-      console.error("[v0] Error saving response:", error)
-    }
-  }
 
   const handleCodeSubmit = (code: string, output: string) => {
     setCurrentCode(code)
@@ -136,18 +105,10 @@ export function InterviewSession({ sessionId }: InterviewSessionProps) {
         {/* Code Editor for Technical Questions */}
         {interviewType === "technical" && (
           <div className="mb-6">
-            <CodeEditor questionId={currentQuestion.id} onCodeSubmit={handleCodeSubmit} />
+            <CodeEditor question={currentQuestion} onCodeSubmit={handleCodeSubmit} />
           </div>
         )}
 
-        {/* Voice Recorder */}
-        <Card className="p-8 mb-6 bg-card border-border">
-          <VoiceRecorder
-            isRecording={isRecording}
-            onStartRecording={handleStartRecording}
-            onStopRecording={handleStopRecording}
-          />
-        </Card>
 
         {/* Transcript Display */}
         {currentTranscript && (
