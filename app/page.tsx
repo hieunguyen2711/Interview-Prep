@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Brain, Mic, TrendingUp, Code, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import StartPracticingCta from "@/components/auth/start-practicing-cta"
 
 export default function HomePage() {
   return (
@@ -19,12 +20,8 @@ export default function HomePage() {
             your performance and land your dream job.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/login">
-              <Button size="lg" className="h-12 px-8">
-                Start Practicing
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            {/* CTA that respects auth state */}
+            <StartPracticingCta />
           </div>
         </div>
       </section>
@@ -121,12 +118,8 @@ export default function HomePage() {
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-2xl mx-auto">
             Start practicing today and get AI-powered feedback to improve your interview performance
           </p>
-          <Link href="/login">
-            <Button size="lg" className="h-12 px-8">
-              Start Your First Interview
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          {/* CTA that respects auth state */}
+          <StartPracticingCta />
         </Card>
       </section>
     </div>
