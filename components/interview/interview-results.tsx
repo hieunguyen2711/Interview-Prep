@@ -31,6 +31,7 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
 
   const loadResults = async () => {
     try {
+      // Option 1: Use existing results endpoint (current approach)
       const response = await fetch(`/api/interview/${sessionId}/results`)
       const data = await response.json()
 
@@ -38,6 +39,33 @@ export function InterviewResults({ sessionId }: InterviewResultsProps) {
       setResponses(data.responses || [])
       setFeedbacks(data.feedbacks || [])
       setOverallFeedback(data.overallFeedback || null)
+
+      /* Option 2: Direct LLM API call (alternative approach)
+      // First get session data without feedback
+      const sessionResponse = await fetch(`/api/interview/${sessionId}`)
+      const sessionData = await sessionResponse.json()
+      
+      if (sessionData.questions && sessionData.responses) {
+        // Call LLM API directly for feedback generation
+        const llmResponse = await fetch('/api/llm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            questions: sessionData.questions,
+            responses: sessionData.responses
+          })
+        })
+        
+        const llmData = await llmResponse.json()
+        
+        setQuestions(llmData.questions || [])
+        setResponses(llmData.responses || [])
+        setFeedbacks(llmData.feedbacks || [])
+        setOverallFeedback(llmData.overallFeedback || null)
+      }
+      */
     } catch (error) {
       console.error("[v0] Error loading results:", error)
     } finally {

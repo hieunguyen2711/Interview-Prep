@@ -1,36 +1,41 @@
 import { getGeminiClient } from "./gemini"
 import type { InterviewResponse, InterviewQuestion, FeedbackResult } from "@/types/interview"
 
+// Helper to clean Gemini responses (removes ```json fences, trims whitespace)
+function extractJson(text: string): string {
+  return text.replace(/```json/g, "").replace(/```/g, "").trim()
+}
+
 export async function generateFeedback(
   question: InterviewQuestion,
   response: InterviewResponse,
 ): Promise<FeedbackResult> {
+  const gemini = getGeminiClient()
+  const feedbackText = await gemini.evaluateResponse(
+    question.question,
+    response.transcript,
+    question.type
+  )
+
+  console.log("Raw Gemini response:", feedbackText)
+
   try {
-    const gemini = getGeminiClient()
-    const feedbackText = await gemini.evaluateResponse(question.question, response.transcript, question.type)
-
-    // Parse the JSON response
-    const jsonMatch = feedbackText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error("Failed to parse feedback from Gemini response")
-    }
-
-    const feedbackData = JSON.parse(jsonMatch[0])
+    const feedbackData = JSON.parse(extractJson(feedbackText))
 
     return {
       questionId: question.id,
       responseId: response.questionId,
-      score: feedbackData.score || 0,
-      strengths: feedbackData.strengths || [],
-      improvements: feedbackData.improvements || [],
-      detailedAnalysis: feedbackData.detailedAnalysis || "",
-      sentiment: feedbackData.sentiment || "neutral",
+      score: feedbackData.score ?? 0,
+      strengths: feedbackData.strengths ?? [],
+      improvements: feedbackData.improvements ?? [],
+      detailedAnalysis: feedbackData.detailedAnalysis ?? "",
+      sentiment: feedbackData.sentiment ?? "neutral",
       generatedAt: new Date(),
     }
   } catch (error) {
-    console.error("[v0] Error generating feedback:", error)
+    console.error("[v0] Error parsing Gemini feedback:", error, feedbackText)
 
-    // Fallback feedback
+    // Fallback feedback if parsing fails
     return {
       questionId: question.id,
       responseId: response.questionId,
@@ -41,7 +46,7 @@ export async function generateFeedback(
         "Structure your response using the STAR method for better clarity",
       ],
       detailedAnalysis:
-        "Your response shows good understanding of the question. To improve, focus on providing more concrete examples with measurable outcomes. Consider structuring your answers using the STAR method (Situation, Task, Action, Result) to make them more compelling and easier to follow.",
+        "Your response shows good understanding of the question. To improve, focus on providing more concrete examples with measurable outcomes. Consider structuring your answers using the STAR method (Situation, Task, Action, Result).",
       sentiment: "positive",
       generatedAt: new Date(),
     }
@@ -80,24 +85,19 @@ Improvements: ${f.improvements.join("; ")}
   )
   .join("\n")}
 
-Provide an overall assessment in JSON format:
+Return ONLY a valid JSON object in this format, no extra text or markdown:
 {
   "overallScore": <number 0-100>,
   "summary": "<2-3 paragraph overall assessment>",
   "keyStrengths": [<array of 3-4 key strengths across all responses>],
   "areasForImprovement": [<array of 3-4 key areas to improve>]
-}
-
-Focus on patterns across all responses and provide actionable advice for improvement.`
+}`
 
     const response = await gemini.generateContent(prompt)
+    console.log("Raw Gemini overall response:", response)
 
-    const jsonMatch = response.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error("Failed to parse overall feedback")
-    }
-
-    return JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(extractJson(response))
+    return parsed
   } catch (error) {
     console.error("[v0] Error generating overall feedback:", error)
 
