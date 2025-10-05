@@ -7,9 +7,5 @@ export default function UserProvider({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <Auth0Provider user={undefined}>
-      {children}
-    </Auth0Provider>
-  );
+  return <Auth0Provider user={undefined}>{children}</Auth0Provider>;
 }
