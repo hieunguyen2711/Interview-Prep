@@ -5,12 +5,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const { id } = params
 
   try {
-    // Fetch actual interview results
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/api/interview/${id}/results`, {
+    // Fetch actual interview results from the same host (relative) to avoid cross-host issues
+    const res = await fetch(`${request.url.replace(/\/api\/interview\/.*$/, '')}/api/interview/${id}/results`, {
       cache: "no-store",
+      // forward cookies in case results endpoint requires auth/session
+      headers: { cookie: request.headers.get('cookie') || '' },
     })
     if (!res.ok) {
-      throw new Error(`Failed to fetch interview results: ${res.statusText}`)
+      const txt = await res.text().catch(() => '')
+      throw new Error(`Failed to fetch interview results: ${res.status} ${res.statusText} - ${txt}`)
     }
 
     const data = await res.json()
@@ -71,15 +74,22 @@ export async function GET(request: Request, { params }: { params: { id: string }
     })
 
     
-    const buffer = await Packer.toBuffer(doc)
-const uint8Array = new Uint8Array(buffer)
+    let buffer
+    try {
+      buffer = await Packer.toBuffer(doc)
+    } catch (err) {
+      console.error('[v0] Error packing docx:', err)
+      throw err
+    }
 
-return new NextResponse(uint8Array, {
-  headers: {
-    "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "Content-Disposition": `attachment; filename=interview-report-${id}.docx`,
-  },
-})
+    const uint8Array = new Uint8Array(buffer)
+
+    return new NextResponse(uint8Array, {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": `attachment; filename=interview-report-${id}.docx`,
+      },
+    })
   } catch (error) {
     console.error("[v0] Error generating report:", error)
     return NextResponse.json({ error: "Failed to generate report" }, { status: 500 })
