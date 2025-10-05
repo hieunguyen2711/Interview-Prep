@@ -55,24 +55,44 @@ export function VoiceRecorder({ isRecording, onStartRecording, onStopRecording }
         throw new Error("No audio recorded")
       }
 
+      console.log("[v0] Voice recorder - Audio blob created:", {
+        size: audioBlob.size,
+        type: audioBlob.type
+      })
+
       const formData = new FormData()
       formData.append("audio", audioBlob)
 
+      console.log("[v0] Voice recorder - Sending to transcription API...")
       const response = await fetch("/api/speech/transcribe", {
         method: "POST",
         body: formData,
       })
 
-      if (!response.ok) {
-        throw new Error("Transcription failed")
-      }
+      console.log("[v0] Voice recorder - Transcription response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
 
       const data = await response.json()
-      onStopRecording(data.transcript, audioBlob)
+      console.log("[v0] Voice recorder - Transcription data:", data)
+
+      if (!response.ok) {
+        // If there's an error but we have a transcript in the response, use it
+        if (data.transcript) {
+          console.log("[v0] Voice recorder - Using error transcript:", data.transcript)
+          onStopRecording(data.transcript, audioBlob)
+        } else {
+          throw new Error(data.error || "Transcription failed")
+        }
+      } else {
+        onStopRecording(data.transcript, audioBlob)
+      }
     } catch (err) {
       console.error("[v0] Transcription error:", err)
-      const mockTranscript =
-        "This is a sample transcript. The actual speech-to-text service will replace this with your real spoken answer once the ELEVENLABS_API_KEY is configured."
+      const errorMessage = err instanceof Error ? err.message : "Unknown error"
+      const mockTranscript = `Transcription failed: ${errorMessage}. Please check your ELEVENLABS_API_KEY configuration and try again.`
       onStopRecording(mockTranscript)
     } finally {
       setIsProcessing(false)

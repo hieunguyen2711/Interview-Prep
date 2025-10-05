@@ -1,13 +1,26 @@
 'use client';
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Brain, LayoutDashboard, Home, LogIn } from "lucide-react"
-import UserProfile from "@/components/auth/user-profile"
-import { useUser } from '@auth0/nextjs-auth0'
+import { SimpleLoginButton } from "@/components/auth/simple-login-button"
+import { simpleAuth, type User } from "@/lib/simple-auth"
 
 export function Header() {
-  const { user } = useUser();
+  const [user, setUser] = useState<User | null>(simpleAuth.getCurrentUser());
+
+  useEffect(() => {
+    // Listen for auth state changes
+    const checkAuth = () => {
+      setUser(simpleAuth.getCurrentUser())
+    }
+    
+    // Check auth state periodically
+    const interval = setInterval(checkAuth, 1000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -35,7 +48,7 @@ export function Header() {
                 </Button>
               </Link>
             )}
-            <UserProfile />
+            <SimpleLoginButton />
           </nav>
         </div>
       </div>

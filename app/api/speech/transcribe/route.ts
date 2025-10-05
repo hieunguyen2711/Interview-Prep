@@ -10,6 +10,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No audio file provided" }, { status: 400 })
     }
 
+    console.log("[v0] Audio file received:", {
+      size: audioFile.size,
+      type: audioFile.type,
+      hasApiKey: !!process.env.ELEVENLABS_API_KEY,
+      apiKeyLength: process.env.ELEVENLABS_API_KEY?.length || 0
+    })
+
     // Check if API key is configured
     if (!process.env.ELEVENLABS_API_KEY) {
       console.log("[v0] ELEVENLABS_API_KEY not configured, using fallback")
@@ -19,12 +26,25 @@ export async function POST(request: Request) {
       })
     }
 
+    console.log("[v0] Attempting speech-to-text with ElevenLabs...")
     const client = getElevenLabsClient()
     const transcript = await client.speechToText(audioFile)
+
+    console.log("[v0] Transcription successful:", {
+      transcriptLength: transcript.length,
+      transcriptPreview: transcript.substring(0, 100) + (transcript.length > 100 ? "..." : "")
+    })
 
     return NextResponse.json({ transcript })
   } catch (error) {
     console.error("[v0] Transcription error:", error)
-    return NextResponse.json({ error: "Failed to transcribe audio" }, { status: 500 })
+    
+    // Return a more helpful error message
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    return NextResponse.json({ 
+      error: "Failed to transcribe audio",
+      details: errorMessage,
+      transcript: `Transcription failed: ${errorMessage}. Please check your ELEVENLABS_API_KEY and try again.`
+    }, { status: 500 })
   }
 }

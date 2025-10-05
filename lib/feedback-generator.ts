@@ -1,4 +1,5 @@
 import { getGeminiClient } from "./gemini"
+import { generateFallbackFeedback } from "./fallback-feedback"
 import type { InterviewResponse, InterviewQuestion, FeedbackResult } from "@/types/interview"
 
 // Helper to clean Gemini responses (removes ```json fences, trims whitespace)
@@ -29,49 +30,46 @@ export async function generateFeedback(
     }
   }
 
-  const gemini = getGeminiClient()
-  const feedbackText = await gemini.evaluateResponse(
-    question.question,
-    response.transcript,
-    question.type
-  )
-
-  console.log("Raw Gemini response:", feedbackText.substring(0, 200) + "...")
+  // Check if Gemini API key is available
+  const hasGeminiKey = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_gemini_api_key_here"
+  
+  if (!hasGeminiKey) {
+    console.log("[feedback] No Gemini API key available, using fallback feedback system")
+    return generateFallbackFeedback(question, response)
+  }
 
   try {
-    const feedbackData = JSON.parse(extractJson(feedbackText))
+    const gemini = getGeminiClient()
+    const feedbackText = await gemini.evaluateResponse(
+      question.question,
+      response.transcript,
+      question.type
+    )
 
-    return {
-      questionId: question.id,
-      responseId: response.questionId,
-      score: feedbackData.score ?? 0,
-      strengths: feedbackData.strengths ?? [],
-      improvements: feedbackData.improvements ?? [],
-      detailedAnalysis: feedbackData.detailedAnalysis ?? "",
-      sentiment: feedbackData.sentiment ?? "neutral",
-      generatedAt: new Date(),
+    console.log("Raw Gemini response:", feedbackText.substring(0, 200) + "...")
+
+    try {
+      const feedbackData = JSON.parse(extractJson(feedbackText))
+
+      return {
+        questionId: question.id,
+        responseId: response.questionId,
+        score: feedbackData.score ?? 0,
+        strengths: feedbackData.strengths ?? [],
+        improvements: feedbackData.improvements ?? [],
+        detailedAnalysis: feedbackData.detailedAnalysis ?? "",
+        sentiment: feedbackData.sentiment ?? "neutral",
+        generatedAt: new Date(),
+      }
+    } catch (error) {
+      console.error("[v0] Error parsing Gemini feedback:", error, "\nResponse snippet:", feedbackText.substring(0, 200))
+      // Fall back to our fallback system if Gemini response is malformed
+      return generateFallbackFeedback(question, response)
     }
   } catch (error) {
-    console.error("[v0] Error parsing Gemini feedback:", error, "\nResponse snippet:", feedbackText.substring(0, 200))
-
-    // Enhanced fallback feedback based on response content
-    const responseLength = response.transcript.length
-    const fallbackScore = responseLength > 200 ? 65 : responseLength > 100 ? 55 : 45
-    
-    return {
-      questionId: question.id,
-      responseId: response.questionId,
-      score: fallbackScore,
-      strengths: ["You provided a response to the question"],
-      improvements: [
-        "LLM feedback generation failed - manual review recommended",
-        "Consider providing more detailed examples",
-        "Structure your response using the STAR method",
-      ],
-      detailedAnalysis: `Feedback generation encountered an error. Your response (${responseLength} characters) was received but couldn't be fully analyzed. Please ensure your response is complete and detailed.`,
-      sentiment: "neutral",
-      generatedAt: new Date(),
-    }
+    console.error("[v0] Error calling Gemini API:", error)
+    // Fall back to our fallback system if Gemini API fails
+    return generateFallbackFeedback(question, response)
   }
 }
 
@@ -85,6 +83,14 @@ export async function generateOverallFeedback(
   keyStrengths: string[]
   areasForImprovement: string[]
 }> {
+  // Check if Gemini API key is available
+  const hasGeminiKey = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_gemini_api_key_here"
+  
+  if (!hasGeminiKey) {
+    console.log("[feedback] No Gemini API key available, using fallback overall feedback")
+    return generateFallbackOverallFeedback(questions, responses, feedbacks)
+  }
+
   try {
     const gemini = getGeminiClient()
 
@@ -122,24 +128,60 @@ Return ONLY a valid JSON object in this format, no extra text or markdown:
     return parsed
   } catch (error) {
     console.error("[v0] Error generating overall feedback:", error)
+    return generateFallbackOverallFeedback(questions, responses, feedbacks)
+  }
+}
 
-    // Fallback overall feedback
-    const avgScore = feedbacks.reduce((sum, f) => sum + f.score, 0) / feedbacks.length
+function generateFallbackOverallFeedback(
+  questions: InterviewQuestion[],
+  responses: InterviewResponse[],
+  feedbacks: FeedbackResult[],
+): {
+  overallScore: number
+  summary: string
+  keyStrengths: string[]
+  areasForImprovement: string[]
+} {
+  const avgScore = feedbacks.reduce((sum, f) => sum + f.score, 0) / feedbacks.length
+  const overallScore = Math.round(avgScore)
 
-    return {
-      overallScore: Math.round(avgScore),
-      summary:
-        "You demonstrated good interview skills overall. Your responses showed relevant experience and understanding of the questions. To further improve, focus on providing more specific examples with measurable outcomes and structuring your answers more clearly.",
-      keyStrengths: [
-        "Clear communication and articulation",
-        "Relevant experience and examples",
-        "Good understanding of questions",
-      ],
-      areasForImprovement: [
-        "Add more specific metrics and quantifiable results",
-        "Use the STAR method consistently",
-        "Provide more detailed context for your examples",
-      ],
-    }
+  // Collect all strengths and improvements
+  const allStrengths = feedbacks.flatMap(f => f.strengths)
+  const allImprovements = feedbacks.flatMap(f => f.improvements)
+
+  // Get unique strengths and improvements
+  const uniqueStrengths = [...new Set(allStrengths)]
+  const uniqueImprovements = [...new Set(allImprovements)]
+
+  // Select top strengths and improvements
+  const keyStrengths = uniqueStrengths.slice(0, 4)
+  const areasForImprovement = uniqueImprovements.slice(0, 4)
+
+  let summary = `You completed ${responses.length} out of ${questions.length} questions with an average score of ${overallScore}/100. `
+  
+  if (overallScore >= 80) {
+    summary += "Excellent performance! Your responses demonstrate strong interview skills and clear communication. "
+  } else if (overallScore >= 60) {
+    summary += "Good performance with room for improvement. Your responses show understanding but could benefit from more structure. "
+  } else {
+    summary += "There's significant room for improvement in your interview responses. Focus on providing more detailed examples and structure. "
+  }
+
+  summary += "Continue practicing to refine your interview skills and build confidence in your responses."
+
+  return {
+    overallScore,
+    summary,
+    keyStrengths: keyStrengths.length > 0 ? keyStrengths : [
+      "Completed the interview questions",
+      "Provided responses to all questions",
+      "Demonstrated effort and engagement"
+    ],
+    areasForImprovement: areasForImprovement.length > 0 ? areasForImprovement : [
+      "Add more specific examples and details",
+      "Use the STAR method for behavioral questions",
+      "Include quantifiable results and metrics",
+      "Practice structuring responses more clearly"
+    ],
   }
 }

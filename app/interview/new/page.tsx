@@ -1,9 +1,12 @@
 import { InterviewSetup } from "@/components/interview/interview-setup"
+import { SimpleProtectedRoute } from "@/components/auth/simple-protected-route"
 
 export default function NewInterviewPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <InterviewSetup />
-    </div>
+    <SimpleProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <InterviewSetup />
+      </div>
+    </SimpleProtectedRoute>
   )
 }

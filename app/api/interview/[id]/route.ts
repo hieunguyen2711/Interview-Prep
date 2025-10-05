@@ -1,14 +1,37 @@
 import { NextResponse } from "next/server"
+import { generateInterviewQuestions } from "@/lib/question-generator"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-  const { id } = await params
+    const { id } = await params
 
     const sessions = typeof global !== "undefined" ? (global as any).interviewSessions || {} : {}
-    const session = sessions[id]
+    let session = sessions[id]
 
+    // If session doesn't exist, create a default behavioral session
     if (!session) {
-      return NextResponse.json({ error: "Interview session not found" }, { status: 404 })
+      console.log(`[v0] Session ${id} not found, creating default behavioral session`)
+      
+      try {
+        const questions = await generateInterviewQuestions("behavioral", 5)
+        
+        session = {
+          id,
+          type: "behavioral",
+          questions,
+          responses: [],
+          createdAt: new Date(),
+        }
+
+        // Store the new session in memory
+        if (typeof global !== "undefined") {
+          ;(global as any).interviewSessions = (global as any).interviewSessions || {}
+          ;(global as any).interviewSessions[id] = session
+        }
+      } catch (error) {
+        console.error("[v0] Error creating default session:", error)
+        return NextResponse.json({ error: "Failed to create interview session" }, { status: 500 })
+      }
     }
 
     return NextResponse.json({

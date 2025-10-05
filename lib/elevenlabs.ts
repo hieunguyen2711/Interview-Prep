@@ -39,6 +39,13 @@ export class ElevenLabsClient {
 
   async speechToText(audioBlob: Blob): Promise<string> {
     try {
+      console.log("[v0] ElevenLabs STT - Starting transcription:", {
+        audioSize: audioBlob.size,
+        audioType: audioBlob.type,
+        apiKeyPresent: !!this.apiKey,
+        apiKeyLength: this.apiKey?.length || 0
+      })
+
       const formData = new FormData()
       formData.append("audio", audioBlob)
 
@@ -50,11 +57,21 @@ export class ElevenLabsClient {
         body: formData,
       })
 
+      console.log("[v0] ElevenLabs STT - Response status:", response.status, response.statusText)
+
       if (!response.ok) {
-        throw new Error(`ElevenLabs STT error: ${response.statusText}`)
+        const errorText = await response.text()
+        console.error("[v0] ElevenLabs STT - Error response:", errorText)
+        throw new Error(`ElevenLabs STT error: ${response.status} ${response.statusText} - ${errorText}`)
       }
 
       const data = await response.json()
+      console.log("[v0] ElevenLabs STT - Response data:", {
+        hasText: !!data.text,
+        textLength: data.text?.length || 0,
+        fullResponse: data
+      })
+
       return data.text || ""
     } catch (error) {
       console.error("[v0] ElevenLabs STT error:", error)

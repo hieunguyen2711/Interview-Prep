@@ -1,9 +1,12 @@
 import type { NextRequest } from "next/server";
 
-import { auth0 } from "./lib/auth0"; // Adjust path if your auth0 client is elsewhere
+// Auth0 middleware disabled - using simple authentication instead
+// import { auth0 } from "./lib/auth0";
 
 export async function middleware(request: NextRequest) {
-  return await auth0.middleware(request);
+  // Simple middleware that just passes through requests
+  // No authentication middleware needed for simple auth system
+  return;
 }
 
 export const config = {
@@ -12,9 +15,9 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - auth (auth routes should not be intercepted by middleware)
+     * - api (API routes)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    "/((?!_next/static|_next/image|auth|favicon.ico|sitemap.xml|robots.txt).*)"
+    "/((?!_next/static|_next/image|api|favicon.ico|sitemap.xml|robots.txt).*)"
   ]
 };
