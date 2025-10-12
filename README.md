@@ -1,82 +1,76 @@
-# InterviewAI - Smart Interview Prep Platform
+MockMate 🌟
+--------------------------
 
-An AI-powered platform for practicing behavioral and technical interviews with real-time feedback.
+### Overview
 
-## Features
+**MockMate** is a sophisticated, full-stack web application designed to revolutionize technical and behavioral interview preparation. Built primarily with **Next.js**, it simulates real-time conversations using the cutting-edge Google **Gemini AI**, providing **instant, objective feedback** on the user's content and communication style. Our mission is to transform interview anxiety into confidence, ensuring users walk into their next opportunity fully prepared.
 
-- 🎤 **Voice Interaction**: Speak your answers naturally with real-time transcription
-- 🤖 **AI Feedback**: Get detailed analysis and scoring from advanced AI
-- 💻 **Code Editor**: Practice technical interviews with live coding
-- 📊 **Progress Tracking**: Monitor improvement with detailed analytics
+### ✨ Key Features
 
-## Setup Instructions
+*   **Serverless AI Simulation:** Utilizes **Next.js API Routes** to securely proxy requests to the **Gemini API**, ensuring your API key is never exposed on the client-side.
+    
+*   **Real-Time Performance Analysis:** Provides immediate scoring (on a scale of 1-10) and detailed feedback on technical accuracy, structure, and communication effectiveness.
+    
+*   **Voice and Text Interaction:** Supports both spoken (via browser APIs) and typed responses for a flexible practice experience.
+    
+*   **Customizable Sessions:** Users can select interview types (e.g., Data Science, Software Engineering), technical domains, and desired difficulty levels.
+    
+*   **Performance Dashboard:** Tracks user progress across multiple sessions, storing data directly in a managed NoSQL or serverless database (e.g., Firebase, Supabase).
+    
+*   **Secure Authentication:** User data and session history are protected via **Firebase Authentication** or **NextAuth**.
+    
 
-### 1. Environment Variables
+### 🛠️ Technology Stack
 
-You need to add the following environment variables to your Vercel project:
+CategoryTechnologiesDescription**FrameworkNext.js**React framework for frontend and serverless API Routes.**FrontendReact, TypeScript**Component-based UI development.**AI CoreGoogle Gemini API**Powers the interviewer logic, scoring, and feedback generation.**Data/AuthFirebase (or Supabase)**Provides secure, managed user sign-up/login and data storage.**StylingTailwind CSS**Utility-first CSS framework for rapid styling.**DevOpsVercel**Hosting platform, perfectly integrated with Next.js.
 
-#### Firebase Configuration
-\`\`\`
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-\`\`\`
+### 🚀 Getting Started
 
-#### ElevenLabs API (for Speech-to-Text and Text-to-Speech)
-\`\`\`
-ELEVENLABS_API_KEY=your_elevenlabs_api_key
-\`\`\`
+Follow these steps to get a development copy of the project running on your local machine.
 
-#### Gemini API (for AI question generation and feedback)
-\`\`\`
-GEMINI_API_KEY=your_gemini_api_key
-\`\`\`
+### Prerequisites
 
-### 2. Firebase Setup
+*   **Node.js v18+**
+    
+*   A **Gemini API Key** from Google AI Studio.
+    
+*   A **Firebase Project** configured for web (or a similar backend-as-a-service like Supabase).
+    
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project
-3. Enable Firestore Database
-4. Copy your configuration values to the environment variables above
+### Installation
 
-### 3. API Keys
+1.  Bashgit clone https://github.com/YourGitHubUsername/ai-interview-prep-buddy.gitcd ai-interview-prep-buddy
+    
+2.  Bashnpm install
+    
 
-- **ElevenLabs**: Sign up at [elevenlabs.io](https://elevenlabs.io/) and get your API key
-- **Gemini**: Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+### Configuration (Environment Variables)
 
-## Tech Stack
+Create a file named **.env.local** in the root directory. **Replace the placeholder values with your actual credentials.**
 
-- **Framework**: Next.js 15 with App Router
-- **Styling**: TailwindCSS v4 + Shadcn UI
-- **AI APIs**: ElevenLabs (STT/TTS) + Gemini (Question Generation & Feedback)
-- **Database**: Firebase Firestore
-- **Deployment**: Vercel
+**.env.local**
 
-## Getting Started
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Gemini API Key (Used ONLY in Next.js API Routes)  GEMINI_API_KEY="AIzaSy...your_gemini_key...xyz"  # Firebase Config (for client-side authentication and database access)  NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project-id.firebaseapp.com"  NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-project-id.appspot.com"  # ... other Firebase/Supabase keys   `
 
-1. Install dependencies (handled automatically by v0)
-2. Add environment variables in Project Settings
-3. Deploy to Vercel or run locally
+### Running the Application
 
-## Project Structure
+*   Bashnpm run dev
+    
 
-\`\`\`
-app/
-├── page.tsx              # Landing page
-├── interview/            # Interview pages
-├── dashboard/            # User dashboard
-└── api/                  # API routes
+The application will now be running at http://localhost:3000.
 
-components/
-├── ui/                   # Shadcn UI components
-└── interview/            # Interview-specific components
+### 🤝 Contributing
 
-lib/
-├── firebase.ts           # Firebase configuration
-└── api-config.ts         # API configuration
+We actively welcome and appreciate contributions to the **AI Interview Prep Buddy** project!
 
-types/
-└── interview.ts          # TypeScript types
+1.  Fork the repository and clone your fork.
+    
+2.  Create a new feature branch (git checkout -b feature/new-behavioral-model).
+    
+3.  Commit your changes with clear, descriptive messages.
+    
+4.  Push your branch to your fork.
+    
+5.  Open a detailed **Pull Request** explaining the changes and linking to any relevant issues.
+    
+
